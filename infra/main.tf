@@ -22,4 +22,11 @@ module "vpc" {
   public_subnet_a_az   = var.public_subnet_a_az
   public_subnet_b_cidr = var.public_subnet_b_cidr
   public_subnet_b_az   = var.public_subnet_b_az
+  public_route_cidr    = var.public_route_cidr
+}
+
+module "ecr" {
+  source            = "./modules/ecr"
+  repository_name   = var.repository_name
+  
 }
