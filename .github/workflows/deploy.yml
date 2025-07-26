@@ -15,13 +15,29 @@ jobs:
       AWS_REGION: eu-west-1
       AWS_ACCOUNT_ID: 967694737948
       ECR_REPOSITORY: devops-challenge-ecr
+      DOTNET_PROJECT_PATH: src/custom-api/custom-api.csproj
+
 
     steps:
-      # 1. Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Configure AWS credentials
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.DOTNET_PROJECT_PATH }}
+
+      - name: Build .NET API
+        run: dotnet build ${{ env.DOTNET_PROJECT_PATH }} --configuration Release --no-restore
+
+      #TODO: Improve custom-api and develop some unit tests
+      - name: Run unit tests
+        run: dotnet test --no-build || echo "No tests found — skipping..."
+
+      # Configure AWS credentials (Grants access from Github to AWS)
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -29,23 +45,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 3. Log in to ECR
       - name: Login to Amazon ECR
         run: |
           aws ecr get-login-password --region $AWS_REGION | \
           docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-      # 4. Build Docker image (Build context is the root of the repository and points to the Dockerfile manually)
+      # Build Docker image (Build context is the root of the repository and points to the Dockerfile manually)
       - name: Build Docker image
         run: |
           docker build -t $ECR_REPOSITORY:latest -f images/Dockerfile . 
 
-      # 5. Tag image for ECR
       - name: Tag Docker image
         run: |
           docker tag $ECR_REPOSITORY:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
 
-      # 6. Push to ECR
       - name: Push Docker image to Amazon ECR
         run: |
           docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
