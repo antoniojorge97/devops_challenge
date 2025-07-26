@@ -35,14 +35,17 @@ jobs:
           aws ecr get-login-password --region $AWS_REGION | \
           docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-      # 4. Build Docker image
+      # 4. Build Docker image (Build context is the root of the repository and points to the Dockerfile manually)
       - name: Build Docker image
-        run: docker build -t $ECR_REPOSITORY:latest ./images
+        run: |
+          docker build -t $ECR_REPOSITORY:latest -f images/Dockerfile . 
 
       # 5. Tag image for ECR
       - name: Tag Docker image
-        run: docker tag $ECR_REPOSITORY:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+        run: |
+          docker tag $ECR_REPOSITORY:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
 
       # 6. Push to ECR
       - name: Push Docker image to Amazon ECR
-        run: docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+        run: |
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest

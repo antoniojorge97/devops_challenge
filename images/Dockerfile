@@ -1,7 +1,7 @@
 # Build Stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ../src/custom-api/ /src/custom-api/
+COPY ./src/custom-api ./custom-api
 RUN dotnet publish /src/custom-api/custom-api.csproj -c Release -o /app/publish
 
 # Runtime Stage
