@@ -15,7 +15,11 @@ terraform {
 # Modules 
 
 module "vpc" {
-  source       = "./modules/vpc"
-  vpc_cidr     = var.vpc_cidr
-  project_name = var.project_name
+  source               = "./modules/vpc"
+  vpc_cidr             = var.vpc_cidr
+  project_name         = var.project_name
+  public_subnet_a_cidr = var.public_subnet_a_cidr
+  public_subnet_a_az   = var.public_subnet_a_az
+  public_subnet_b_cidr = var.public_subnet_b_cidr
+  public_subnet_b_az   = var.public_subnet_b_az
 }
