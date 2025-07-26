@@ -30,3 +30,11 @@ module "ecr" {
   repository_name   = var.repository_name
   
 }
+
+module "ecs" {
+  source            = "./modules/ecs"
+}
+
+module "iam" {
+  source = "./modules/iam"
+}
