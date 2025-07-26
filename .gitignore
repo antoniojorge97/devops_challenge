@@ -1,0 +1,11 @@
+# Terraform state
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+*.backup
+*.lock.info
+
+# Ignore IDE stuff too (optional)
+.vscode/
+.idea/
