@@ -62,6 +62,6 @@ resource "aws_ecs_service" "custom_api_service" {
   }
 
   depends_on = [
-    var.aws_lb_listener_blue_arn
+    var.aws_lb_http_listener_arn
   ]
 }

@@ -38,7 +38,7 @@ module "ecs" {
   aws_lb_target_group_blue_arn                    = module.alb.aws_lb_target_group_blue_arn
   public_subnet_ids                               = [module.vpc.public_subnet_a_id, module.vpc.public_subnet_b_id]
   aws_application_load_balancer_security_group_id = module.alb.aws_application_load_balancer_security_group_id
-  aws_lb_listener_blue_arn                        = module.alb.aws_lb_listener_blue_arn
+  aws_lb_http_listener_arn                        = module.alb.aws_lb_http_listener_arn
 }
 
 module "iam" {
@@ -50,4 +50,5 @@ module "alb" {
   virtual_private_cloud_id    = module.vpc.vpc_id
   public_subnet_a_id          = module.vpc.public_subnet_a_id
   public_subnet_b_id          = module.vpc.public_subnet_b_id
+  active_target_group         = var.active_target_group
 }

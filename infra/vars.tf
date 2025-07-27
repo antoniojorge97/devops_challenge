@@ -51,3 +51,8 @@ variable "repository_name" {
   description = "ECR repository's name"
   default     = "devops-challenge-ecr"
 }
+
+variable "active_target_group" {
+  description = "ARN of the active target group (blue or green)"
+  type        = string
+}

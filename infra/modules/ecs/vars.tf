@@ -28,7 +28,7 @@ variable "aws_application_load_balancer_security_group_id" {
   description = "ALB security group Id"
 }
 
-variable "aws_lb_listener_blue_arn" {
+variable "aws_lb_http_listener_arn" {
   type        = string
   description = "ALB listener ARN for blue target group"
 }

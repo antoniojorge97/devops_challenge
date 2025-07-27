@@ -67,14 +67,14 @@ resource "aws_lb_target_group" "green" {
 }
 
 
-resource "aws_lb_listener" "blue_listener" {
+resource "aws_lb_listener" "http_listener" {
   load_balancer_arn = aws_lb.application_load_balancer.arn
   port              = 80
   protocol          = "HTTP"
 
   default_action {
     type             = "forward" // Forward traffic to the blue target group
-    target_group_arn = aws_lb_target_group.blue.arn // The actual target group ARN
+    target_group_arn = var.active_target_group // The actual target group ARN
   }
 }
 
