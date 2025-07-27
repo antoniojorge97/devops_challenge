@@ -1,4 +1,4 @@
-name: Push Docker Image to ECR
+name: CI/CD Pipeline
 
 on:
   push:
