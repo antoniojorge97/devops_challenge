@@ -9,7 +9,6 @@ variable "vpc_cidr" {
   description = "CIDR block for the VPC."
 }
 
-
 # Subnet variables
 variable "public_subnet_a_cidr" {
   type        = string

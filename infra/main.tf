@@ -40,3 +40,10 @@ module "ecs" {
 module "iam" {
   source = "./modules/iam"
 }
+
+module "alb" {
+  source                      = "./modules/alb"
+  virtual_private_cloud_id    = module.vpc.vpc_id
+  public_subnet_a_id          = module.vpc.public_subnet_a_id
+  public_subnet_b_id          = module.vpc.public_subnet_b_id
+}

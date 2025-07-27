@@ -2,8 +2,6 @@ resource "aws_ecs_cluster" "elastic_container_service" {
   name = "devops-challenge-cluster"
 }
 
-
-
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name              = "devops-challenge-ecs-logs"
   retention_in_days = 3
@@ -25,7 +23,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
       essential = true
       portMappings = [
         {
-          containerPort = 8080
+          containerPort = 8080 # Port the container listens on
           protocol      = "tcp"
         }
       ]
