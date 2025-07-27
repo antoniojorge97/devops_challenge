@@ -36,7 +36,7 @@ resource "aws_lb" "application_load_balancer" {
 # Create 2 target groups: blue and green
 resource "aws_lb_target_group" "blue" {
   name        = "tg-blue"
-  port        = 8080 # Matches the container port
+  port        = 80 # Matches the container port
   protocol    = "HTTP"
   vpc_id      = var.virtual_private_cloud_id
   target_type = "ip"
@@ -52,7 +52,7 @@ resource "aws_lb_target_group" "blue" {
 
 resource "aws_lb_target_group" "green" {
   name        = "tg-green"
-  port        = 8080 # Matches the container port
+  port        = 80 # Matches the container port
   protocol    = "HTTP"
   vpc_id      = var.virtual_private_cloud_id
   target_type = "ip"
