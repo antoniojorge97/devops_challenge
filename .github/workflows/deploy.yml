@@ -75,21 +75,62 @@ jobs:
           terraform_version: 1.7.5
 
       - name: Terraform Init
+        working-directory: infra
         run: terraform init
 
-      # Apply Terraform changes based on the selected target group
-      - name: Terraform Plan
+      # Set the target group based on the input color (GITHUB_ENV is used to pass variables between steps)
+      - name: Set deployment color
         run: |
-          if [[ "${{ github.event.inputs.color }}" == "green" ]]; then
+          echo "COLOR=${{ github.event.inputs.color || 'blue' }}" >> $GITHUB_ENV
+
+      # Apply Terraform changes based on the selected target group
+      # - name: Terraform Plan
+      #   run: |
+      #     echo "Planning deployment to target group: $COLOR"
+      #     if [[ "$COLOR" == "green" ]]; then
+      #       terraform plan -var="active_target_group=${{ secrets.TG_GREEN_ARN }}"
+      #     else
+      #       terraform plan -var="active_target_group=${{ secrets.TG_BLUE_ARN }}"
+      #     fi
+
+      - name: Terraform Plan (debug)
+        working-directory: infra
+        run: |
+          export TF_LOG=DEBUG
+          export TF_LOG_PATH=terraform-debug.log
+
+          echo "Planning deployment to target group: $COLOR"
+
+          if [[ "$COLOR" == "green" ]]; then
             terraform plan -var="active_target_group=${{ secrets.TG_GREEN_ARN }}"
           else
             terraform plan -var="active_target_group=${{ secrets.TG_BLUE_ARN }}"
           fi
 
       - name: Terraform Apply
+        working-directory: infra
         run: |
-          if [[ "${{ github.event.inputs.color }}" == "green" ]]; then
+          # Defining blue as default target group for when pushing changes
+          COLOR="${{ github.event.inputs.color || 'blue' }}"
+          echo "Applying deployment to target group: $COLOR"
+
+          if [[ "$COLOR" == "green" ]]; then
             terraform apply -auto-approve -var="active_target_group=${{ secrets.TG_GREEN_ARN }}"
           else
             terraform apply -auto-approve -var="active_target_group=${{ secrets.TG_BLUE_ARN }}"
           fi
+
+      - name: Validate deployment via health check
+        run: |
+          echo "Health check validation in progress..."
+
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" https://devops-challenge-alb-1148491247.eu-west-1.elb.amazonaws.com/message)
+
+          echo "HTTP status code: $RESPONSE"
+
+          if [[ "$RESPONSE" -ne 200 ]]; then
+            echo "Health check failed!!"
+            exit 1
+          fi
+
+          echo "API is healthy and returned 200 OK."
