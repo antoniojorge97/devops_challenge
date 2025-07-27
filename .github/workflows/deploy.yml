@@ -6,6 +6,11 @@ on:
       - main
       - develop
   workflow_dispatch:
+    inputs:
+      color:
+        description: 'Which target group should receive traffic?'
+        required: true
+        default: 'blue'
 
 jobs:
   push-to-ecr:
@@ -62,3 +67,29 @@ jobs:
       - name: Push Docker image to Amazon ECR
         run: |
           docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+      # Terraform
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.5
+
+      - name: Terraform Init
+        run: terraform init
+
+      # Apply Terraform changes based on the selected target group
+      - name: Terraform Plan
+        run: |
+          if [[ "${{ github.event.inputs.color }}" == "green" ]]; then
+            terraform plan -var="active_target_group=${{ secrets.TG_GREEN_ARN }}"
+          else
+            terraform plan -var="active_target_group=${{ secrets.TG_BLUE_ARN }}"
+          fi
+
+      - name: Terraform Apply
+        run: |
+          if [[ "${{ github.event.inputs.color }}" == "green" ]]; then
+            terraform apply -auto-approve -var="active_target_group=${{ secrets.TG_GREEN_ARN }}"
+          else
+            terraform apply -auto-approve -var="active_target_group=${{ secrets.TG_BLUE_ARN }}"
+          fi
