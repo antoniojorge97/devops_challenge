@@ -3,6 +3,16 @@ variable "project_name" {
   description = "Prefix for resource naming"
 }
 
+variable "aws_account_id" {
+  type        = string
+  description = "AWS account ID"
+}
+
+variable "aws_region" {
+  type        = string
+  description = "AWS region"
+}
+
 # VPC Configuration
 variable "vpc_cidr" {
   type        = string
