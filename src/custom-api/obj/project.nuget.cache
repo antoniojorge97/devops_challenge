@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "TGPG6pYsibE=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\adjzi\\Documents\\devops_challenge\\src\\custom-api\\custom-api.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\adjzi\\.nuget\\packages\\microsoft.netcore.app.ref\\8.0.18\\microsoft.netcore.app.ref.8.0.18.nupkg.sha512",
+    "C:\\Users\\adjzi\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\8.0.18\\microsoft.windowsdesktop.app.ref.8.0.18.nupkg.sha512",
+    "C:\\Users\\adjzi\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\8.0.18\\microsoft.aspnetcore.app.ref.8.0.18.nupkg.sha512",
+    "C:\\Users\\adjzi\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\8.0.18\\microsoft.netcore.app.host.win-x64.8.0.18.nupkg.sha512"
+  ],
+  "logs": []
+}

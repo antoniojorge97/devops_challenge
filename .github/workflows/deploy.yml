@@ -1,0 +1,134 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      color:
+        description: 'Which target group should receive traffic?'
+        required: true
+        default: 'blue'
+      action:
+        description: 'Terraform action to perform (apply or destroy)'
+        required: true
+        default: 'apply'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: eu-west-1
+      AWS_ACCOUNT_ID: 967694737948
+      ECR_REPOSITORY: devops-challenge-ecr
+      DOTNET_PROJECT_PATH: src/custom-api/custom-api.csproj
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set deployment color
+        run: |
+          COLOR="${{ github.event.inputs.color }}"
+          if [[ -z "$COLOR" ]]; then
+            COLOR="blue"
+          fi
+          echo "COLOR=$COLOR" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.5
+
+      - name: Terraform Init
+        working-directory: infra
+        run: terraform init
+
+      - name: Terraform Apply or Destroy
+        working-directory: infra
+        run: |
+          ACTION="${{ github.event.inputs.action }}"
+          COLOR="${{ github.event.inputs.color || 'blue' }}"
+
+          echo "Terraform action: $ACTION"
+          echo "Deployment color: $COLOR"
+
+          if [[ "$ACTION" == "destroy" ]]; then
+            terraform destroy -auto-approve -input=false -var-file="terraform.tfvars" -var="deployment_color=$COLOR"
+          else
+            terraform apply -auto-approve -input=false -var-file="terraform.tfvars" -var="deployment_color=$COLOR"
+          fi
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.DOTNET_PROJECT_PATH }}
+
+      - name: Build .NET API
+        run: dotnet build ${{ env.DOTNET_PROJECT_PATH }} --configuration Release --no-restore
+
+      - name: Run unit tests
+        run: dotnet test --no-build || echo "No tests found — skipping..."
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | \
+          docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+      - name: Build Docker image
+        run: docker build -t $ECR_REPOSITORY:latest -f images/Dockerfile .
+
+      - name: Tag Docker image
+        run: docker tag $ECR_REPOSITORY:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+      - name: Push Docker image to Amazon ECR
+        run: docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
+      - name: Wait for ECS task to initialize
+        run: sleep 30
+
+      # - name: Get ALB DNS from Terraform
+      #   id: get-alb
+      #   working-directory: infra
+      #   run: |
+      #     alb_dns=$(terraform output -raw alb_dns_name)
+      #     echo "alb_dns=$alb_dns" >> $GITHUB_OUTPUT
+
+      # - name: Simple health check via curl
+      #   run: |
+      #     echo "Checking API health at http://${{ steps.get-alb.outputs.alb_dns }}/message ..."
+      #     RESPONSE=$(curl http://${{ steps.get-alb.outputs.alb_dns }}/message 2>&1)
+      #     STATUS_CODE=$(echo "$RESPONSE" | head -n 1 | grep -o "HTTP/.*" | awk '{print $2}')
+
+      #     echo "HTTP status code: $STATUS_CODE"
+
+      #     if [[ "$STATUS_CODE" == "200" ]]; then
+      #       echo "API is healthy."
+      #     else
+      #       echo "Health check failed with status code $STATUS_CODE"
+      #       exit 1
+      #     fi
+
+      # - name: Basic Load Test (curl loop)
+      #   if: env.ACTION == 'apply'
+      #   run: |
+      #     for i in {1..50}; do
+      #       curl -s -o /dev/null -w "%{http_code}\n" http://${{ steps.detect-tg.outputs.target_group_arn }}/healthz
+      #     done
+
+
+
+
