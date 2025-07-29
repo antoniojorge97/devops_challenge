@@ -1,8 +1,12 @@
-name: Infrastructure Provisioning
+name: Terraform Deployment
 
 on:
   workflow_dispatch:
     inputs:
+      color:
+        description: 'Which target group should receive traffic?'
+        required: true
+        default: 'blue'
       action:
         description: 'Terraform action (apply or destroy)'
         required: true
@@ -18,6 +22,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set deployment color
+        run: |
+          COLOR="${{ github.event.inputs.color }}"
+          if [[ -z "$COLOR" ]]; then
+            COLOR="blue"
+          fi
+          echo "COLOR=$COLOR" >> $GITHUB_ENV
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -39,10 +51,13 @@ jobs:
         working-directory: infra
         run: |
           ACTION="${{ github.event.inputs.action }}"
+          COLOR="${{ github.event.inputs.color || 'blue' }}"
+
           echo "Terraform action: $ACTION"
+          echo "Deployment color: $COLOR"
 
           if [[ "$ACTION" == "destroy" ]]; then
-            terraform destroy -auto-approve -input=false -var-file="terraform.tfvars"
+            terraform destroy -auto-approve -input=false -var-file="terraform.tfvars" -var="deployment_color=$COLOR"
           else
-            terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
+            terraform apply -auto-approve -input=false -var-file="terraform.tfvars" -var="deployment_color=$COLOR"
           fi
