@@ -50,6 +50,7 @@ module "ecs" {
   active_target_group                             = var.deployment_color == "blue" ? module.alb.tg_blue_arn : module.alb.tg_green_arn
   deployment_color                                = var.deployment_color
   aws_lb_target_group_green_arn                   = module.alb.tg_green_arn
+  image_tag                                       = var.image_tag
 }
 
 module "iam" {

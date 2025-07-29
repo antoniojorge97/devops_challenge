@@ -62,3 +62,9 @@ variable "deployment_color" {
   type        = string
   default     = "blue"
 }
+
+variable "image_tag" {
+  description = "Color for deployment: blue or green"
+  type        = string
+  default     = "blue"
+}
