@@ -18,6 +18,11 @@ variable "aws_lb_target_group_blue_arn" {
   description = "Application Load Balancer target group ARN"
 }
 
+variable "aws_lb_target_group_green_arn" {
+  type        = string
+  description = "Application Load Balancer target group ARN"
+}
+
 variable "public_subnet_ids" {
   description = "List of public subnet IDs for ECS service"
   type        = list(string)

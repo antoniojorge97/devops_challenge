@@ -40,8 +40,9 @@ resource "aws_ecs_task_definition" "ecs_task" {
 }
 
 # ECS Service: manages the running instances of the task definition defined above
-resource "aws_ecs_service" "custom_api_service" {
-  name            = "devops-challenge-service-${var.deployment_color}" # 👈 this is the key change
+resource "aws_ecs_service" "blue" {
+  count           = var.deployment_color == "blue" ? 1 : 0
+  name            = "devops-challenge-service-blue"
   cluster         = aws_ecs_cluster.elastic_container_service.id
   launch_type     = "FARGATE"
   desired_count   = 1
@@ -54,13 +55,63 @@ resource "aws_ecs_service" "custom_api_service" {
   }
 
   load_balancer {
-    target_group_arn = var.active_target_group
+    target_group_arn = var.aws_lb_target_group_blue_arn
     container_name   = "custom-api"
     container_port   = 80
   }
 
-  depends_on = [
-    var.aws_lb_http_listener_arn
-  ]
+  depends_on = [aws_ecs_task_definition.ecs_task]
 }
+
+resource "aws_ecs_service" "green" {
+  count           = var.deployment_color == "green" ? 1 : 0
+  name            = "devops-challenge-service-green"
+  cluster         = aws_ecs_cluster.elastic_container_service.id
+  launch_type     = "FARGATE"
+  desired_count   = 1
+  task_definition = aws_ecs_task_definition.ecs_task.arn
+
+  network_configuration {
+    subnets          = var.public_subnet_ids
+    security_groups  = [var.aws_application_load_balancer_security_group_id]
+    assign_public_ip = true
+  }
+
+  load_balancer {
+    target_group_arn = var.aws_lb_target_group_green_arn
+    container_name   = "custom-api"
+    container_port   = 80
+  }
+
+  depends_on = [aws_ecs_task_definition.ecs_task]
+}
+
+
+resource "aws_ecs_service" "blue" {
+  count           = var.deployment_color == "blue" ? 1 : 0
+  name            = "devops-challenge-service-blue"
+  cluster         = aws_ecs_cluster.elastic_container_service.id
+  task_definition = aws_ecs_task_definition.ecs_task.arn
+
+  load_balancer {
+    target_group_arn = var.aws_lb_target_group_blue_arn
+    container_name   = "custom-api"
+    container_port   = 80
+  }
+}
+
+resource "aws_ecs_service" "green" {
+  count           = var.deployment_color == "green" ? 1 : 0
+  name            = "devops-challenge-service-green"
+  cluster         = aws_ecs_cluster.elastic_container_service.id
+  task_definition = aws_ecs_task_definition.ecs_task.arn
+
+  load_balancer {
+    target_group_arn = var.aws_lb_target_group_green_arn
+    container_name   = "custom-api"
+    container_port   = 80
+  }
+}
+
+
 

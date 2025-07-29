@@ -49,6 +49,7 @@ module "ecs" {
   aws_lb_http_listener_arn                        = module.alb.aws_lb_http_listener_arn
   active_target_group                             = var.deployment_color == "blue" ? module.alb.tg_blue_arn : module.alb.tg_green_arn
   deployment_color                                = var.deployment_color
+  aws_lb_target_group_green_arn                   = module.alb.aws_lb_target_group_green_arn
 }
 
 module "iam" {
