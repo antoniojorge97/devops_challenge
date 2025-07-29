@@ -47,3 +47,8 @@ variable "deployment_color" {
   description = "Which color deployment is active (blue or green)"
   type        = string
 }
+
+variable "image_tag" {
+  description = "image tag"
+  type        = string
+}

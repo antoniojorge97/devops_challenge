@@ -19,7 +19,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
   container_definitions = jsonencode([
     {
       name      = "custom-api"
-      image     = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/devops-challenge-ecr:latest"
+      image = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/devops-challenge-ecr:${var.image_tag}"
       essential = true
       portMappings = [
         {

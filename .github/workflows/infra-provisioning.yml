@@ -11,6 +11,10 @@ on:
         description: 'Terraform action (apply or destroy)'
         required: true
         default: 'apply'
+      image_tag:
+        description: 'Docker image tag to deploy (e.g., SHA)'
+        required: true
+        default: 'latest'
 
 jobs:
   terraform:
@@ -23,12 +27,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set deployment color and target group
+      - name: Set environment variables
         run: |
-          COLOR="${{ github.event.inputs.color }}"
-          echo "COLOR=$COLOR" >> $GITHUB_ENV
+          echo "COLOR=${{ github.event.inputs.color }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${{ github.event.inputs.image_tag }}" >> $GITHUB_ENV
 
-          if [[ "$COLOR" == "blue" ]]; then
+          if [[ "${{ github.event.inputs.color }}" == "blue" ]]; then
             TG_ARN="${{ secrets.TG_BLUE_ARN }}"
           else
             TG_ARN="${{ secrets.TG_GREEN_ARN }}"
@@ -56,12 +60,13 @@ jobs:
       - name: Terraform Apply or Destroy (ECS Service only)
         working-directory: infra
         run: |
-          echo "Deploying ECS service to $COLOR (TG: $TG_ARN)"
+          echo "Deploying ECS service to $COLOR (TG: $TG_ARN, image: $IMAGE_TAG)"
 
           if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
             terraform destroy -auto-approve -input=false \
               -var="deployment_color=$COLOR" \
               -var="active_target_group=$TG_ARN" \
+              -var="image_tag=$IMAGE_TAG" \
               -var-file="terraform.tfvars"
             exit 0
           fi
@@ -69,6 +74,7 @@ jobs:
           terraform apply -auto-approve -input=false \
             -var="deployment_color=$COLOR" \
             -var="active_target_group=$TG_ARN" \
+            -var="image_tag=$IMAGE_TAG" \
             -var-file="terraform.tfvars"
 
       - name: Wait for target group to become healthy
@@ -84,7 +90,7 @@ jobs:
               --output text 2>/dev/null || echo "not_found")
 
             if [[ "$STATE" == "healthy" ]]; then
-              echo "Target is healthy."
+              echo "✅ Target is healthy."
               exit 0
             elif [[ "$STATE" == "not_found" ]]; then
               echo "Target group not ready yet... retrying"
@@ -95,7 +101,7 @@ jobs:
             sleep 10
           done
 
-          echo "Timeout: Target group never became healthy"
+          echo "❌ Timeout: Target group never became healthy"
           exit 1
 
       - name: Terraform Apply (Switch ALB Listener)
@@ -106,4 +112,5 @@ jobs:
           terraform apply -auto-approve -input=false \
             -var="deployment_color=$COLOR" \
             -var="active_target_group=$TG_ARN" \
+            -var="image_tag=$IMAGE_TAG" \
             -var-file="terraform.tfvars"
