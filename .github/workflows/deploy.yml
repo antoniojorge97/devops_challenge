@@ -47,28 +47,11 @@ jobs:
           aws ecr get-login-password --region $AWS_REGION | \
           docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-      - name: Generate unique image tag
-        id: tag
-        run: |
-          IMAGE_TAG=$(git rev-parse --short HEAD)
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-          echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
-
       - name: Build Docker image
-        run: docker build --no-cache -t $ECR_REPOSITORY:$IMAGE_TAG -f images/Dockerfile .
+        run: docker build --no-cache -t $ECR_REPOSITORY:latest -f images/Dockerfile .
 
       - name: Tag Docker image for ECR
-        run: docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
+        run: docker tag $ECR_REPOSITORY:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
 
       - name: Push Docker image to Amazon ECR
-        run: docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
-
-      - name: Save image tag to file
-        run: echo $IMAGE_TAG > image-tag.txt
-
-      - name: Upload image tag artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: image-tag
-          path: image-tag.txt
-
+        run: docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
