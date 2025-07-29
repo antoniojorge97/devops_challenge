@@ -23,10 +23,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set deployment color
+      - name: Set deployment color and target group
         run: |
           COLOR="${{ github.event.inputs.color }}"
           echo "COLOR=$COLOR" >> $GITHUB_ENV
+
+          if [[ "$COLOR" == "blue" ]]; then
+            TG_ARN="${{ secrets.TG_BLUE_ARN }}"
+          else
+            TG_ARN="${{ secrets.TG_GREEN_ARN }}"
+          fi
+
+          echo "TG_ARN=$TG_ARN" >> $GITHUB_ENV
+          echo "Selected target group: $TG_ARN"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -47,20 +56,9 @@ jobs:
       - name: Terraform Apply or Destroy (ECS Service only)
         working-directory: infra
         run: |
-          COLOR="${{ github.event.inputs.color }}"
-          ACTION="${{ github.event.inputs.action }}"
-
-          if [[ "$COLOR" == "blue" ]]; then
-            TG_ARN="${{ secrets.TG_BLUE_ARN }}"
-          else
-            TG_ARN="${{ secrets.TG_GREEN_ARN }}"
-          fi
-
-          echo "TG_ARN=$TG_ARN" >> $GITHUB_ENV
-
           echo "Deploying ECS service to $COLOR (TG: $TG_ARN)"
 
-          if [[ "$ACTION" == "destroy" ]]; then
+          if [[ "${{ github.event.inputs.action }}" == "destroy" ]]; then
             terraform destroy -auto-approve -input=false \
               -var="deployment_color=$COLOR" \
               -var="active_target_group=$TG_ARN" \
@@ -75,18 +73,10 @@ jobs:
 
       - name: Wait for target group to become healthy
         run: |
-          COLOR="${{ github.event.inputs.color }}"
-          if [[ "$COLOR" == "blue" ]]; then
-            TG_ARN="${{ secrets.TG_BLUE_ARN }}"
-          else
-            TG_ARN="${{ secrets.TG_GREEN_ARN }}"
-          fi
-
-          echo "Waiting 30s to ensure ECS service registers with TG..."
+          echo "Waiting 30s to ensure ECS task is running..."
           sleep 30
 
-          echo "Waiting for targets in TG: $TG_ARN to become healthy..."
-
+          echo "Checking health of targets in: $TG_ARN"
           for i in {1..30}; do
             STATE=$(aws elbv2 describe-target-health \
               --target-group-arn "$TG_ARN" \
@@ -97,9 +87,9 @@ jobs:
               echo "Target is healthy."
               exit 0
             elif [[ "$STATE" == "not_found" ]]; then
-              echo "Target group not found yet. Waiting..."
+              echo "Target group not ready yet... retrying"
             else
-              echo "Target state: $STATE"
+              echo "🔸 Current target health state: $STATE"
             fi
 
             sleep 10
@@ -108,14 +98,10 @@ jobs:
           echo "Timeout: Target group never became healthy"
           exit 1
 
-
-      - name: Terraform Apply (ALB Listener Switch)
+      - name: Terraform Apply (Switch ALB Listener)
         working-directory: infra
         run: |
-          COLOR="${{ github.event.inputs.color }}"
-          TG_ARN="$TG_ARN"
-
-          echo "Switching ALB listener to $COLOR (TG: $TG_ARN)"
+          echo "🔁 Switching ALB listener to point to $COLOR (TG: $TG_ARN)..."
 
           terraform apply -auto-approve -input=false \
             -var="deployment_color=$COLOR" \

@@ -41,7 +41,6 @@ resource "aws_ecs_task_definition" "ecs_task" {
 
 # ECS Service: manages the running instances of the task definition defined above
 resource "aws_ecs_service" "blue" {
-  count           = var.deployment_color == "blue" ? 1 : 0
   name            = "devops-challenge-service-blue"
   cluster         = aws_ecs_cluster.elastic_container_service.id
   launch_type     = "FARGATE"
@@ -64,7 +63,7 @@ resource "aws_ecs_service" "blue" {
 }
 
 resource "aws_ecs_service" "green" {
-  count           = var.deployment_color == "green" ? 1 : 0
+  # count           = "var.deployment_color == "green" ? 1 : 0"
   name            = "devops-challenge-service-green"
   cluster         = aws_ecs_cluster.elastic_container_service.id
   launch_type     = "FARGATE"
