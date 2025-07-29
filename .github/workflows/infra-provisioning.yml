@@ -47,17 +47,27 @@ jobs:
         working-directory: infra
         run: terraform init
 
-      - name: Terraform Apply or Destroy
+      - name: Terraform Apply
         working-directory: infra
         run: |
+          COLOR="${{ github.event.inputs.color }}"
           ACTION="${{ github.event.inputs.action }}"
-          COLOR="${{ github.event.inputs.color || 'blue' }}"
 
-          echo "Terraform action: $ACTION"
-          echo "Deployment color: $COLOR"
+          if [[ "$COLOR" == "blue" ]]; then
+            TG_ARN="${{ secrets.TG_BLUE_ARN }}"
+          else
+            TG_ARN="${{ secrets.TG_GREEN_ARN }}"
+          fi
+
+          echo "Target Group ARN: $TG_ARN"
 
           if [[ "$ACTION" == "destroy" ]]; then
-            terraform destroy -auto-approve -input=false -var-file="terraform.tfvars" -var="deployment_color=$COLOR"
+            terraform destroy -auto-approve -input=false \
+              -var="active_target_group=$TG_ARN" \
+              -var-file="terraform.tfvars"
           else
-            terraform apply -auto-approve -input=false -var-file="terraform.tfvars" -var="deployment_color=$COLOR"
+            terraform apply -auto-approve -input=false \
+              -var="active_target_group=$TG_ARN" \
+              -var-file="terraform.tfvars"
           fi
+

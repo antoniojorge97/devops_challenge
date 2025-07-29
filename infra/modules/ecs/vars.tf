@@ -32,3 +32,8 @@ variable "aws_lb_http_listener_arn" {
   type        = string
   description = "ALB listener ARN for blue target group"
 }
+
+variable "active_target_group" {
+  description = "ARN of the active target group (blue or green)"
+  type        = string
+}

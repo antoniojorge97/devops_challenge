@@ -56,7 +56,7 @@ resource "aws_ecs_service" "custom_api_service" {
   }
 
   load_balancer {
-    target_group_arn = var.aws_lb_target_group_blue_arn
+    target_group_arn = var.active_target_group
     container_name   = "custom-api"
     container_port   = 80
   }

@@ -52,10 +52,10 @@ variable "repository_name" {
   default     = "devops-challenge-ecr"
 }
 
-# variable "active_target_group" {
-#   description = "ARN of the active target group (blue or green)"
-#   type        = string
-# }
+variable "active_target_group" {
+  description = "ARN of the active target group (blue or green)"
+  type        = string
+}
 
 variable "deployment_color" {
   description = "Color for deployment: blue or green"

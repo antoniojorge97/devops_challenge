@@ -47,6 +47,7 @@ module "ecs" {
   public_subnet_ids                               = [module.vpc.public_subnet_a_id, module.vpc.public_subnet_b_id]
   aws_application_load_balancer_security_group_id = module.alb.aws_application_load_balancer_security_group_id
   aws_lb_http_listener_arn                        = module.alb.aws_lb_http_listener_arn
+  active_target_group                             = var.deployment_color == "blue" ? module.alb.tg_blue_arn : module.alb.tg_green_arn
 }
 
 module "iam" {
