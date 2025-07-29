@@ -41,14 +41,12 @@ resource "aws_ecs_task_definition" "ecs_task" {
 
 # ECS Service: manages the running instances of the task definition defined above
 resource "aws_ecs_service" "custom_api_service" {
-  name            = "devops-challenge-service"
+  name            = "devops-challenge-service-${var.deployment_color}" # 👈 this is the key change
   cluster         = aws_ecs_cluster.elastic_container_service.id
   launch_type     = "FARGATE"
-  desired_count   = 1 #number of container instances to run
+  desired_count   = 1
   task_definition = aws_ecs_task_definition.ecs_task.arn
 
-
-  # ECS schedules tasks across both subnets: public_subnet_a and public_subnet_b
   network_configuration {
     subnets          = var.public_subnet_ids
     security_groups  = [var.aws_application_load_balancer_security_group_id]
@@ -65,3 +63,4 @@ resource "aws_ecs_service" "custom_api_service" {
     var.aws_lb_http_listener_arn
   ]
 }
+

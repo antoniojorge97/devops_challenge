@@ -37,3 +37,8 @@ variable "active_target_group" {
   description = "ARN of the active target group (blue or green)"
   type        = string
 }
+
+variable "deployment_color" {
+  description = "Which color deployment is active (blue or green)"
+  type        = string
+}

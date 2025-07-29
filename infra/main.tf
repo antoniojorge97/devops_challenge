@@ -48,6 +48,7 @@ module "ecs" {
   aws_application_load_balancer_security_group_id = module.alb.aws_application_load_balancer_security_group_id
   aws_lb_http_listener_arn                        = module.alb.aws_lb_http_listener_arn
   active_target_group                             = var.deployment_color == "blue" ? module.alb.tg_blue_arn : module.alb.tg_green_arn
+  deployment_color                                = var.deployment_color
 }
 
 module "iam" {
