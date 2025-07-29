@@ -45,30 +45,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: 1.7.5
-
-      - name: Terraform Init
-        working-directory: infra
-        run: terraform init
-
-      - name: Terraform Apply or Destroy
-        working-directory: infra
-        run: |
-          ACTION="${{ github.event.inputs.action }}"
-          COLOR="${{ github.event.inputs.color || 'blue' }}"
-
-          echo "Terraform action: $ACTION"
-          echo "Deployment color: $COLOR"
-
-          if [[ "$ACTION" == "destroy" ]]; then
-            terraform destroy -auto-approve -input=false -var-file="terraform.tfvars" -var="deployment_color=$COLOR"
-          else
-            terraform apply -auto-approve -input=false -var-file="terraform.tfvars" -var="deployment_color=$COLOR"
-          fi
-
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -99,6 +75,31 @@ jobs:
 
       - name: Wait for ECS task to initialize
         run: sleep 30
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.7.5
+
+      - name: Terraform Init
+        working-directory: infra
+        run: terraform init
+
+      - name: Terraform Apply or Destroy
+        working-directory: infra
+        run: |
+          ACTION="${{ github.event.inputs.action }}"
+          COLOR="${{ github.event.inputs.color || 'blue' }}"
+
+          echo "Terraform action: $ACTION"
+          echo "Deployment color: $COLOR"
+
+          if [[ "$ACTION" == "destroy" ]]; then
+            terraform destroy -auto-approve -input=false -var-file="terraform.tfvars" -var="deployment_color=$COLOR"
+          else
+            terraform apply -auto-approve -input=false -var-file="terraform.tfvars" -var="deployment_color=$COLOR"
+          fi
+
 
       # - name: Get ALB DNS from Terraform
       #   id: get-alb
