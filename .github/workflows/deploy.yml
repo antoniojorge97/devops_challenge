@@ -55,7 +55,7 @@ jobs:
           echo "tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Build Docker image
-        run: docker build --no-cache -t $ECR_REPOSITORY:$IMAGE_TAG -f images/Dockerfile src/custom-api
+        run: docker build --no-cache -t $ECR_REPOSITORY:$IMAGE_TAG -f images/Dockerfile .
 
       - name: Tag Docker image for ECR
         run: docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
