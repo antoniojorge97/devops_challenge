@@ -87,31 +87,5 @@ resource "aws_ecs_service" "green" {
 }
 
 
-resource "aws_ecs_service" "blue" {
-  count           = var.deployment_color == "blue" ? 1 : 0
-  name            = "devops-challenge-service-blue"
-  cluster         = aws_ecs_cluster.elastic_container_service.id
-  task_definition = aws_ecs_task_definition.ecs_task.arn
-
-  load_balancer {
-    target_group_arn = var.aws_lb_target_group_blue_arn
-    container_name   = "custom-api"
-    container_port   = 80
-  }
-}
-
-resource "aws_ecs_service" "green" {
-  count           = var.deployment_color == "green" ? 1 : 0
-  name            = "devops-challenge-service-green"
-  cluster         = aws_ecs_cluster.elastic_container_service.id
-  task_definition = aws_ecs_task_definition.ecs_task.arn
-
-  load_balancer {
-    target_group_arn = var.aws_lb_target_group_green_arn
-    container_name   = "custom-api"
-    container_port   = 80
-  }
-}
-
 
 
