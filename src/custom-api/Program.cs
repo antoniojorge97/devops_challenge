@@ -5,6 +5,6 @@ var app = builder.Build();
 builder.WebHost.UseUrls("http://+:80");
 
 app.MapGet("/", () => "Hello World!");
-app.MapGet("/message", () => "Hey Joao, Marcio & Diego!!!!!");
+app.MapGet("/message", () => "Hey Joao, Marcio & Diego.");
 
 app.Run();
