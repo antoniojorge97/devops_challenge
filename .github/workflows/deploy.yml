@@ -69,4 +69,4 @@ jobs:
           docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
 
       - name: Output image tag
-        run: echo "Image tag pushed: $IMAGE_TAG"
+        run: echo "Image tag pushed $IMAGE_TAG"
